@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LSMStorageEngine.memtable;
 
-internal class Entry
+public class Entry
 {
     public string Key { get; set; }
     public byte[] Value { get; set; }

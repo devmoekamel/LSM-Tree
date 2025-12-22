@@ -1,10 +1,14 @@
-﻿
+﻿using LSMStorageEngine.StorageEngine;
 
 
-using LSMStorageEngine.memtable;
+    var config = new StorageEngineConfig { MaxMemTableSize = 1000, Path = @"D:\\mine\\data\" };
+    var engine = new StorageEngine(config);
 
-var memtable  = new MemoryTable();
+    engine.Put("key1", new byte[] { 1, 2, 3 });
 
-memtable.Put("Key1", System.Text.Encoding.UTF8.GetBytes( "Value1"));
+engine.ManualFlushToSSTable();
+//Console.WriteLine(engine.Get("key1"));
+//engine.Delete("key1");
+Console.WriteLine(engine.Get("key1"));
 
-Console.WriteLine(memtable.isFull);
+Console.WriteLine("Test complete");

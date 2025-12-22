@@ -13,27 +13,34 @@ public class MemoryTable
     public ConcurrentDictionary<string,Entry> Entries { get; private set; }
     public int MaxSize { get; set; } 
 
-    public bool  IsReadyToBeFlushed => GetSize()>= MaxSize;
+    public string WalFilePath { get; set; }
     public MemoryTable(int maxSize)
     {  
         Entries = new ConcurrentDictionary<string, Entry>();
         MaxSize = maxSize;
     }
-    public void Put(string Key , byte[] Value,int seq)
+
+    
+    public void setWalFilePath( string walFilePath)
+    {
+        this.WalFilePath = walFilePath;
+    }
+
+    public void Put(string Key , byte[] Value,long seq,bool isDeleted = false)
     {
         Entries.TryGetValue(Key, out Entry? existingEntry);
 
         if (existingEntry is null)
 
         {
-            Entries.TryAdd(Key, new Entry(Key, Value,seq, false));
+            Entries.TryAdd(Key, new Entry(Key, Value,seq, isDeleted));
             return;
         }
         bool sameValue = existingEntry.Value.SequenceEqual(Value) && !existingEntry.IsDeleted;
 
         if (!sameValue)
         {
-            Entries[Key] = new Entry(Key, Value,seq , false);
+            Entries[Key] = new Entry(Key, Value,seq , isDeleted);
         }
 
 
@@ -50,7 +57,7 @@ public class MemoryTable
     }
 
 
-    public void Delete (string Key, int seq)
+    public void Delete (string Key, long seq)
     {
         Entries.TryGetValue(Key, out Entry? existingEntry);
         if (existingEntry is null)
@@ -65,7 +72,7 @@ public class MemoryTable
         }
     }
 
-    public int GetSize() {
+    public bool ReadyToBeFlushed(int MaxSize) {
 
         int size = 0;
 
@@ -78,8 +85,21 @@ public class MemoryTable
 
         }
 
-        return size;
+        return size >= MaxSize;
     }
-   
+
+    public void PutRange(IEnumerable<Entry> entries)
+    {
+        var latestPerKey =
+            entries
+                .GroupBy(e => e.Key)
+                .Select(g => g.OrderByDescending(e => e.Seq).First())
+                .OrderBy(e => e.Seq);
+
+        foreach (var entry in latestPerKey)
+        {
+            Put(entry.Key, entry.Value, entry.Seq, entry.IsDeleted);
+        }
+    }
 
 }
