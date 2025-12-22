@@ -1,26 +1,26 @@
 ﻿using LSMStorageEngine.memtable;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace LSMStorageEngine.SSTable;
 
-public class SSTable : IDisposable
+public class SSTable
 {
     public string FilePath { get; set; }
 
     const int _metadataSatartOffset = -12;
     bool _disposed = false;
 
-    FileStream _filestream;
-    BinaryWriter _binartwriter;
+    //FileStream _filestream;
+    //BinaryWriter _binartwriter;
     public SSTable(string filePath)
     {
         FilePath = filePath;
-        _filestream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        _binartwriter = new BinaryWriter(_filestream);
+ 
     }
 
 
@@ -36,6 +36,8 @@ public class SSTable : IDisposable
         var maxkey = sortedEntries.Last().Key;
         var index = new List<(string Key, long Offset)>();
 
+      using  var _filestream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+      using  var _binartwriter = new BinaryWriter(_filestream);
         foreach (var entry in sortedEntries)
         {
             long offset = _filestream.Position;
@@ -145,12 +147,5 @@ public class SSTable : IDisposable
     }
 
 
-    public void Dispose()
-    {
-        if (_disposed) return;
-
-        _disposed = true;
-        _filestream?.Dispose();
-        _binartwriter?.Dispose();
-    }
+    
 }

@@ -114,7 +114,7 @@ public class StorageEngine : IDisposable
                 FlushToSSTable();
                 Compact();
             }
-           await Task.Delay(Config.FlushIntervalMS);
+            await Task.Delay(Config.FlushIntervalMS);
         }
     }
     public  void FlushToSSTable()
@@ -153,7 +153,7 @@ public class StorageEngine : IDisposable
 
         foreach (var file in filesToCompact)
         {
-            using var sst = new SSTable.SSTable(file);
+             var sst = new SSTable.SSTable(file);
             var entries = sst.ReadAll();
 
             foreach (var entry in entries)
@@ -180,6 +180,6 @@ public class StorageEngine : IDisposable
         _cts.Cancel();
         _flushBackgroundWorker.Wait();
         FlushToSSTable();
-        _WAL.Dispose();
+        //_WAL.Dispose();
     }
 }

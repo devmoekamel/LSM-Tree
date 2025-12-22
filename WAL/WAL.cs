@@ -1,23 +1,23 @@
 ﻿using LSMStorageEngine.memtable;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace LSMStorageEngine.WAL;
 
-public class WAL : IDisposable
+public class WAL 
 {
     private string path;
-    private FileStream? _fileStream;
-    private BinaryWriter? _writer;
+    //private FileStream? _fileStream;
+    //private BinaryWriter? _writer;
     private bool _disposed = false;
     public WAL(string path)
     {
         this.path = path;
-        _fileStream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write);
-        _writer = new BinaryWriter(_fileStream);
+    
     }
 
     public void Append(string key, byte[] value, long seq, bool isDeleted)
@@ -27,7 +27,8 @@ public class WAL : IDisposable
         if (!Directory.Exists(folder))
             Directory.CreateDirectory(folder);
 
-
+       using var _fileStream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.Write);
+       using var _writer = new BinaryWriter(_fileStream);
 
         _writer.Write(key);
         _writer.Write(value?.Length ?? 0);           
@@ -38,21 +39,14 @@ public class WAL : IDisposable
         _writer.Flush();
     }
 
-    public void Dispose()
-    {
-        if (_disposed) return;
 
-        _writer?.Dispose();
-        _fileStream?.Dispose();
-        _disposed = true;
-    }
 
     public IEnumerable<Entry> Read()
     {
         if (!File.Exists(path))
              return Enumerable.Empty<Entry>(); ;
 
-        using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+        using var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read,FileShare.Read);
         using var reader = new BinaryReader(fileStream);
 
         List<Entry> entries = new List<Entry>();    
