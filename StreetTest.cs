@@ -14,8 +14,8 @@ public static class StressTester
         };
 
         using var engine = new StorageEngine(config);
-        int totalRecords = 5000;
-        int threadCount = 100;
+        int totalRecords = 50000;
+        int threadCount = 10;
         var timer = Stopwatch.StartNew();
 
         Console.WriteLine($"Starting stress test: {totalRecords} records across {threadCount} threads...");

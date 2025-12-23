@@ -30,7 +30,14 @@ public class SStableManager
 
    public (bool found, byte[]? value) Search(string key)
     {
-        foreach(var metadata in SSTablesMetadata)
+
+        List<SSTableMetadata> tablesSnapshot;
+        lock (_lock)
+        {
+            tablesSnapshot = new List<SSTableMetadata>(SSTablesMetadata);
+        }
+
+        foreach (var metadata in tablesSnapshot)
         {
             if (metadata.IsKeyInRange(key))
             {
