@@ -20,6 +20,10 @@ public class StorageEngine : IDisposable
     public StorageEngine(StorageEngineConfig config)
     {
         Config = config;
+        if (!Directory.Exists(Config.Path))
+        {
+            Directory.CreateDirectory(Config.Path);
+        }
         _CurrentMemTable = new MemoryTable(config.MaxMemTableSize);
         Recover();
         var newWalFilePath = Path.Combine(Config.Path, $"Wal_{++_Seq}.wal");
@@ -91,7 +95,7 @@ public class StorageEngine : IDisposable
     public void Recover()
     {
         var files = Directory.GetFiles(Config.Path, "*.wal")
-                       .OrderBy(f => f);
+                       .OrderBy(f => f).ToList();
 
         List<Entry>  RecoverdEntries = new List<Entry>();
         foreach (var file in files)

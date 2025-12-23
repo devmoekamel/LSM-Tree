@@ -12,6 +12,7 @@ public class SStableManager
 
     const int _metadataSatartOffset = -12;
     public string _folder { get; set; }
+     object _lock = new object();
     public SStableManager(string Folder)
     {
         _folder = Folder;
@@ -55,12 +56,15 @@ public class SStableManager
 
     public void ReplaceTables(List<string> oldFiles, string newFile)
     {
-        SSTablesMetadata.RemoveAll(t => oldFiles.Contains(t.Path));
-        RegisterNewTable(newFile);
-
-        foreach (var file in oldFiles)
+        lock (_lock)
         {
-            if (File.Exists(file)) File.Delete(file);
+            SSTablesMetadata.RemoveAll(t => oldFiles.Contains(t.Path));
+            RegisterNewTable(newFile);
+
+            foreach (var file in oldFiles)
+            {
+                if (File.Exists(file)) File.Delete(file);
+            }
         }
     }
 
